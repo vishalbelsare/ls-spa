@@ -32,6 +32,7 @@ to the top of your Python file.
 
 Optional dependencies are
 - `marimo` for using the demo notebook
+- `matplotlib` for plotting in the demo notebook
 
 ## Usage
 

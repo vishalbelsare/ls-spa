@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ls-spa"
+version = "1.0.0"
+description = "A package for efficient Shapley performance attribution for least-squares problems"
+authors = [
+    "Logan Bell <20belllemail@gmail.com>",
+    "Nikhil Devanathan <nikhil.devanathan@gmail.com>"
+]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^2.1.0"
+scipy = "^1.14.1"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
