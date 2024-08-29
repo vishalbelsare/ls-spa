@@ -21,14 +21,14 @@ Attribution for Least-Squares Regression (arXiv:2310.19245) by Logan
 Bell, Nikhil Devanathan, and Stephen Boyd.
 """
 
+import itertools as it
 from dataclasses import dataclass
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
 import scipy as sp
 from numpy import random
-import pandas as pd
-import itertools as it
 
 
 @dataclass
@@ -47,11 +47,29 @@ class ShapleyResults:
         coefs_str = ""
 
         if len(self.attribution) <= 5:
-            attr_str = "(" + "".join("{:.2f}, ".format(a) for a in self.attribution.flatten())[:-2] + ")"
-            coefs_str = "(" + "".join("{:.2f}, ".format(c) for c in self.theta.flatten())[:-2] + ")"
+            attr_str = (
+                "("
+                + "".join("{:.2f}, ".format(a) for a in self.attribution.flatten())[:-2]
+                + ")"
+            )
+            coefs_str = (
+                "("
+                + "".join("{:.2f}, ".format(c) for c in self.theta.flatten())[:-2]
+                + ")"
+            )
         else:
-            attr_str = "(" + "".join("{:.2f}, ".format(a) for a in self.attribution.flatten()[:5])[:-2] + ", ...)"
-            coefs_str = "(" + "".join("{:.2f}, ".format(c) for c in self.theta.flatten()[:5])[:-2] + ", ...)"
+            attr_str = (
+                "("
+                + "".join("{:.2f}, ".format(a) for a in self.attribution.flatten()[:5])[
+                    :-2
+                ]
+                + ", ...)"
+            )
+            coefs_str = (
+                "("
+                + "".join("{:.2f}, ".format(c) for c in self.theta.flatten()[:5])[:-2]
+                + ", ...)"
+            )
 
         return """
         p = {}
@@ -66,7 +84,7 @@ class ShapleyResults:
             self.r_squared,
             attr_str,
             self.overall_error,
-            coefs_str
+            coefs_str,
         )
 
 
@@ -78,39 +96,51 @@ class SizeIncompatible(Exception):
         super().__init__(self.message)
 
 
-def validate_data(X_train: np.ndarray,
-                  X_test: np.ndarray,
-                  y_train: np.ndarray,
-                  y_test: np.ndarray):
+def validate_data(
+    X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray
+):
     if X_train.shape[1] != X_test.shape[1]:
-        raise SizeIncompatible("X_train and X_test should have the "
-                               "same number of columns (features).")
+        raise SizeIncompatible(
+            "X_train and X_test should have the " "same number of columns (features)."
+        )
 
     if X_train.shape[0] != y_train.shape[0]:
-        raise SizeIncompatible("X_train should have the same number of "
-                               "rows as y_train has entries (observations).")
+        raise SizeIncompatible(
+            "X_train should have the same number of "
+            "rows as y_train has entries (observations)."
+        )
 
     if X_test.shape[0] != y_test.shape[0]:
-        raise SizeIncompatible("X_test should have the same number of "
-                               "rows as y_test has entries (observations).")
+        raise SizeIncompatible(
+            "X_test should have the same number of "
+            "rows as y_test has entries (observations)."
+        )
 
     if X_train.shape[1] > X_train.shape[0]:
-        raise SizeIncompatible("The function works only if the number of "
-                               "features is at most the number of "
-                               "observations.")
+        raise SizeIncompatible(
+            "The function works only if the number of "
+            "features is at most the number of "
+            "observations."
+        )
 
 
-def merge_sample_mean(old_mean: np.ndarray, new_mean: np.ndarray,
-                      old_N: int, new_N: int) -> np.ndarray:
+def merge_sample_mean(
+    old_mean: np.ndarray, new_mean: np.ndarray, old_N: int, new_N: int
+) -> np.ndarray:
     N = old_N + new_N
     adj_old_mean = (old_N / N) * old_mean
     adj_new_mean = (new_N / N) * new_mean
     return adj_old_mean + adj_new_mean
 
 
-def merge_sample_cov(old_mean: np.ndarray, new_mean: np.ndarray,
-                     old_cov: np.ndarray, new_cov: np.ndarray,
-                     old_N: int, new_N: int) -> np.ndarray:
+def merge_sample_cov(
+    old_mean: np.ndarray,
+    new_mean: np.ndarray,
+    old_cov: np.ndarray,
+    new_cov: np.ndarray,
+    old_N: int,
+    new_N: int,
+) -> np.ndarray:
     N = old_N + new_N
     mean_diff = old_mean - new_mean
     adj_old_cov = (old_N / N) * old_cov
@@ -119,18 +149,20 @@ def merge_sample_cov(old_mean: np.ndarray, new_mean: np.ndarray,
     return adj_old_cov + adj_new_cov + delta
 
 
-def ls_spa(X_train: np.ndarray | pd.DataFrame,
-           X_test: np.ndarray | pd.DataFrame,
-           y_train: np.ndarray | pd.Series,
-           y_test: np.ndarray | pd.Series,
-           reg: float = 0.,
-           max_samples: int = 2 ** 13,
-           batch_size: int = 2 ** 8,
-           tolerance: float = 1e-2,
-           seed: int = 42,
-           perms: np.ndarray | None = None,
-           antithetical: bool = True,
-           return_attribution_history: bool = False) -> ShapleyResults:
+def ls_spa(
+    X_train: np.ndarray | pd.DataFrame,
+    X_test: np.ndarray | pd.DataFrame,
+    y_train: np.ndarray | pd.Series,
+    y_test: np.ndarray | pd.Series,
+    reg: float = 0.0,
+    max_samples: int = 2**13,
+    batch_size: int = 2**8,
+    tolerance: float = 1e-2,
+    seed: int = 42,
+    perms: np.ndarray | None = None,
+    antithetical: bool = True,
+    return_attribution_history: bool = False,
+) -> ShapleyResults:
     """
     Estimates the Shapley attribution for a least squares problem.
 
@@ -169,7 +201,7 @@ def ls_spa(X_train: np.ndarray | pd.DataFrame,
     if perms is None:
         if p < 9:
             perms = it.permutations(range(p))
-            batch_size = 2 ** 8
+            batch_size = 2**8
             antithetical = False
         else:
             perms = (rng.permutation(p) for _ in range(max_samples))
@@ -178,15 +210,15 @@ def ls_spa(X_train: np.ndarray | pd.DataFrame,
 
     # Compute the reduction
     y_test_norm_sq = np.linalg.norm(y_test) ** 2
-    (X_train_tilde, X_test_tilde,
-     y_train_tilde, y_test_tilde) = reduce_data(X_train, X_test,
-                                                y_train, y_test, reg)
+    (X_train_tilde, X_test_tilde, y_train_tilde, y_test_tilde) = reduce_data(
+        X_train, X_test, y_train, y_test, reg
+    )
 
     # Iterate over the permutations to compute lifts
     shapley_values = np.zeros(p)
     attribution_cov = np.zeros((p, p))
-    attribution_errors = np.full(p, 0.)
-    overall_error = 0.
+    attribution_errors = np.full(p, 0.0)
+    overall_error = 0.0
     error_history = np.zeros(0)
     if return_attribution_history:
         attribution_history = np.zeros((0, p))
@@ -200,28 +232,39 @@ def ls_spa(X_train: np.ndarray | pd.DataFrame,
 
         # Compute the lift
         perm = np.array(perm)
-        lift = square_shapley(X_train_tilde, X_test_tilde,
-                              y_train_tilde, y_test_tilde, y_test_norm_sq, perm)
+        lift = square_shapley(
+            X_train_tilde,
+            X_test_tilde,
+            y_train_tilde,
+            y_test_tilde,
+            y_test_norm_sq,
+            perm,
+        )
         if antithetical:
-            lift = (lift + square_shapley(X_train_tilde, X_test_tilde,
-                                         y_train_tilde, y_test_tilde,
-                                         y_test_norm_sq, perm[::-1]))/2
-
+            lift = (
+                lift
+                + square_shapley(
+                    X_train_tilde,
+                    X_test_tilde,
+                    y_train_tilde,
+                    y_test_tilde,
+                    y_test_norm_sq,
+                    perm[::-1],
+                )
+            ) / 2
 
         # Update the mean and biased sample covariance
-        attribution_cov = merge_sample_cov(shapley_values, lift,
-                                           attribution_cov, np.zeros((p, p)),
-                                           i-1, 1)
-        shapley_values = merge_sample_mean(shapley_values, lift,
-                                           i-1, 1)
+        attribution_cov = merge_sample_cov(
+            shapley_values, lift, attribution_cov, np.zeros((p, p)), i - 1, 1
+        )
+        shapley_values = merge_sample_mean(shapley_values, lift, i - 1, 1)
         if return_attribution_history:
-            attribution_history = np.vstack((attribution_history,
-                                             shapley_values))
+            attribution_history = np.vstack((attribution_history, shapley_values))
 
         # Update the errors
         if (i % batch_size == 0 or i == max_samples - 1) and p >= 9:
             unbiased_cov = attribution_cov * i / (i - 1)
-            attribution_errors, overall_error = error_estimates(rng,unbiased_cov / i)
+            attribution_errors, overall_error = error_estimates(rng, unbiased_cov / i)
             error_history = np.append(error_history, overall_error)
             do_mini_batch = False
 
@@ -235,12 +278,12 @@ def ls_spa(X_train: np.ndarray | pd.DataFrame,
         attribution_errors, overall_error = error_estimates(rng, unbiased_cov / i)
         error_history = np.append(error_history, overall_error)
 
-
     # Compute auxiliary information
     theta = np.linalg.lstsq(X_train_tilde, y_train_tilde, rcond=None)[0]
-    r_squared = ((np.linalg.norm(y_test_tilde) ** 2
-                 - np.linalg.norm(y_test_tilde - X_test_tilde @ theta) ** 2)
-                 / y_test_norm_sq)
+    r_squared = (
+        np.linalg.norm(y_test_tilde) ** 2
+        - np.linalg.norm(y_test_tilde - X_test_tilde @ theta) ** 2
+    ) / y_test_norm_sq
 
     return ShapleyResults(
         attribution=shapley_values,
@@ -249,13 +292,18 @@ def ls_spa(X_train: np.ndarray | pd.DataFrame,
         attribution_errors=attribution_errors,
         r_squared=r_squared,
         error_history=error_history,
-        attribution_history=attribution_history
+        attribution_history=attribution_history,
     )
 
 
-def square_shapley(X_train: np.ndarray, X_test: np.ndarray,
-                   y_train: np.ndarray, y_test: np.ndarray,
-                   y_norm_sq: float, perm: np.ndarray) -> np.ndarray:
+def square_shapley(
+    X_train: np.ndarray,
+    X_test: np.ndarray,
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    y_norm_sq: float,
+    perm: np.ndarray,
+) -> np.ndarray:
     """
     Estimates the Shapley attribution for a least squares problem.
 
@@ -279,7 +327,7 @@ def square_shapley(X_train: np.ndarray, X_test: np.ndarray,
     T = sp.linalg.solve_triangular(R, Y)
     T = np.hstack((np.zeros((p, 1)), T))
 
-    Y_test = np.tile(y_test, (p+1, 1))
+    Y_test = np.tile(y_test, (p + 1, 1))
     costs = np.sum((X @ T - Y_test.T) ** 2, axis=0)
     R_sq = (np.linalg.norm(y_test) ** 2 - costs) / y_norm_sq
     L = np.ediff1d(R_sq)[np.argsort(perm)]
@@ -287,9 +335,13 @@ def square_shapley(X_train: np.ndarray, X_test: np.ndarray,
     return L
 
 
-def reduce_data(X_train: np.ndarray, X_test: np.ndarray,
-                y_train: np.ndarray, y_test: np.ndarray,
-                reg: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def reduce_data(
+    X_train: np.ndarray,
+    X_test: np.ndarray,
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    reg: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Reduces the data to a smaller problem.
 
@@ -331,9 +383,13 @@ def error_estimates(rng: float, cov: np.ndarray) -> Tuple[np.ndarray, float]:
     """
     p = cov.shape[0]
     try:
-        sample_diffs = rng.multivariate_normal(np.zeros(p), cov, size=2 ** 10, method="cholesky")
+        sample_diffs = rng.multivariate_normal(
+            np.zeros(p), cov, size=2**10, method="cholesky"
+        )
     except:
-        sample_diffs = rng.multivariate_normal(np.zeros(p), cov, size=2 ** 10, method="svd")
+        sample_diffs = rng.multivariate_normal(
+            np.zeros(p), cov, size=2**10, method="svd"
+        )
     abs_diffs = np.abs(sample_diffs)
     norms = np.linalg.norm(sample_diffs, axis=1)
     abs_quantile = np.quantile(abs_diffs, 0.95, axis=0)
