@@ -1,6 +1,14 @@
-[tool.poetry]
+[project]
 name = "ls-spa"
-version = "1.0.0"
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+
+[tool.setuptools_scm]
+# empty
+
+[tool.poetry]
 description = "A package for efficient Shapley performance attribution for least-squares problems"
 authors = [
     "Logan Bell <20belllemail@gmail.com>",
