@@ -3,7 +3,8 @@ name = "ls-spa"
 dynamic = ["version"]
 
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.setuptools_scm]
 # empty
@@ -33,7 +34,3 @@ ignore = [
 
 [tool.black]
 line-length = 88
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
