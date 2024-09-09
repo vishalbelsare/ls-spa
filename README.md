@@ -23,7 +23,7 @@ pip install git+https://github.com/cvxgrp/ls-spa
 Import `ls_spa` by adding
 
 ```python
-from ls_spa import ls_spa
+import ls_spa
 ```
 
 to the top of your Python file.
