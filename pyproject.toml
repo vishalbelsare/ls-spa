@@ -7,8 +7,8 @@ enable = true
 vcs = "git"
 
 [tool.poetry]
-name = "ls-spa"
-version = "0.0.0" # placeholder
+name = "ls_spa"
+version = "0.0.0" # placeholder since we are using dynamic versioning
 description = "A package for efficient Shapley performance attribution for least-squares problems"
 authors = [
     "Logan Bell <20belllemail@gmail.com>",
