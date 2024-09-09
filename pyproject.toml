@@ -1,6 +1,14 @@
+[build-system]
+requires = ["poetry-core", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+
 [tool.poetry]
 name = "ls-spa"
-version = "1.0.0"
+version = "0.0.0" # placeholder
 description = "A package for efficient Shapley performance attribution for least-squares problems"
 authors = [
     "Logan Bell <20belllemail@gmail.com>",
@@ -26,7 +34,3 @@ ignore = [
 
 [tool.black]
 line-length = 88
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
