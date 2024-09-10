@@ -17,7 +17,7 @@ caution in trying to use the benchmark code.
 To install this package, execute
 
 ```bash
-pip install git+https://github.com/cvxgrp/ls-spa
+pip install ls_spa
 ```
 
 Import `ls_spa` by adding
