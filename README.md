@@ -1,36 +1,41 @@
 # Least-Squares Shapley Performance Attribution (LS-SPA)
 
-### [Installation](#Installation) - [Usage](#Usage) - [Hello world](#Hello-world) - [Example notebook](#Example-notebook) - [Optional arguments](#Optional-arguments) - [Citing](#Citing)
+### [Installation](#installation) - [Usage](#usage) - [Hello world](#hello-world) - [Example notebook](#example-notebook) - [Optional arguments](#optional-arguments) - [Citing](#citing)
 
 Library companion to the paper [Efficient Shapley Performance Attribution for Least-Squares
 Regression](https://web.stanford.edu/~boyd/papers/ls_shapley.html) by Logan Bell,
 Nikhil Devanathan, and Stephen Boyd.
 
 The results provided in the reference paper were generated using a more performant, but
-harder to use implementation of the same algorithm. This benchmark code and the numerical 
-experiments from the reference paper can be found at 
+harder to use implementation of the same algorithm. This benchmark code and the numerical
+experiments from the reference paper can be found at
 [cvxgrp/ls-spa-benchmark](https://github.com/cvxgrp/ls-spa-benchmark). We recommend
 caution in trying to use the benchmark code.
 
 ## Installation
 
 To install this package, execute
-```
-pip install git+https://github.com/cvxgrp/ls-spa
+
+```bash
+pip install ls_spa
 ```
 
 Import `ls_spa` by adding
-```
+
+```python
 from ls_spa import ls_spa
 ```
+
 to the top of your Python file.
 
 `ls_spa` has the following dependencies:
+
 - `numpy`
 - `scipy`
 - `pandas`
 
 Optional dependencies are
+
 - `marimo` for using the demo notebook
 - `matplotlib` for plotting in the demo notebook
 
@@ -42,7 +47,7 @@ a $N$ vector of training labels `y_train`, and a $M$ vector of testing labels `y
 for positive integers $p, N, M$ with $N,M\geq p$. In this case, you can find the
 Shapley attribution of the out-of-sample $R^2$ on your data by executing
 
-```
+```python
 attrs = ls_spa(X_train, X_test, y_train, y_test).attribution
 ```
 
@@ -61,7 +66,7 @@ We present a complete Python script that utilizes LS-SPA to compute
 the Shapley attribution on the data from the toy example described
 in the companion paper.
 
-```
+```python
 # Imports
 import numpy as np
 from ls_spa import ls_spa
@@ -75,6 +80,7 @@ results = ls_spa(X_train, X_test, y_train, y_test)
 # Print attribution
 print(results)
 ```
+
 This example uses data from the `data`
 directory of this repository.
 
@@ -85,7 +91,7 @@ model, and an error estimate on the attribution (since LS-SPA is a method
 of estimation).
 
 To extract just the vector of Shapley values, use `results.attribution`.
-For more info, see [optional arguments](#Optional-arguments).
+For more info, see [optional arguments](#optional-arguments).
 
 ## Example notebook
 
@@ -95,7 +101,9 @@ companion paper. We then use `ls_spa` to compute the Shapley attribution
 on the same data.
 
 ## Optional arguments
+
 `ls_spa` takes the optional arguments:
+
 - `reg`: Regularization parameter (Default `0`).
 - `method`: Permutation sampling method. Options include `'random'`,
   `'permutohedron'`, `'argsort'`, and `'exact'`. If `None`, `'argsort'` is used
@@ -108,6 +116,7 @@ on the same data.
 
 `ls_spa` returns a `ShapleyResults` object. The `ShapleyResults` object
 has the fields:
+
 - `attribution`: Array of Shapley values for each feature.
 - `attribution_history`: Array of Shapley values for each iteration.
   `None` if `return_history=False` in `ls_spa` call.
@@ -121,7 +130,8 @@ has the fields:
 ## Citing
 
 If you use this code for research, please cite the associated paper.
-```
+
+```bibtex
 @article{Bell2024,
   title = {Efficient Shapley performance attribution for least-squares regression},
   volume = {34},
@@ -133,6 +143,6 @@ If you use this code for research, please cite the associated paper.
   publisher = {Springer Science and Business Media LLC},
   author = {Bell,  Logan and Devanathan,  Nikhil and Boyd,  Stephen},
   year = {2024},
-  month = jul 
+  month = jul
 }
 ```
